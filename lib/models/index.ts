@@ -87,6 +87,42 @@ export class Models extends Construct {
         ragSupported: true,
       });
     }
+    
+    if (props.config.llms?.sagemaker.includes(SupportedSageMakerModels.FalconLite2)) {
+      const FALCON_LITE2_MODEL_ID = "amazon/FalconLite2";
+      const FALCON_LITE2_ENDPOINT_NAME = FALCON_LITE2_MODEL_ID.split("/").join("-").split(".").join("-");
+    
+      const falconLite2 = new HuggingFaceSageMakerEndpoint(this, "FalconLite2", {
+        modelId: FALCON_LITE2_MODEL_ID,
+        vpcConfig: {
+          securityGroupIds: [props.shared.vpc.vpcDefaultSecurityGroup],
+          subnets: props.shared.vpc.privateSubnets.map((subnet) => subnet.subnetId),
+        },
+        container: DeepLearningContainerImage.HUGGINGFACE_PYTORCH_TGI_INFERENCE_2_0_1_TGI0_9_3_GPU_PY39_CU118_UBUNTU20_04,
+        instanceType: SageMakerInstanceType.ML_G5_24XLARGE,
+        startupHealthCheckTimeoutInSeconds: 1800,
+        endpointName: FALCON_LITE2_ENDPOINT_NAME,
+        environment: {
+          MAX_INPUT_LENGTH: JSON.stringify(24000),
+          MAX_TOTAL_TOKENS: JSON.stringify(24001),
+          MAX_BATCH_PREFILL_TOKENS: JSON.stringify(24000),
+          MAX_BATCH_TOTAL_TOKENS: JSON.stringify(24001),
+        },
+      });
+    
+      this.suppressCdkNagWarningForEndpointRole(falconLite2.role);
+    
+      models.push({
+        name: FALCON_LITE2_ENDPOINT_NAME!,
+        endpoint: falconLite2.cfnEndpoint,
+        responseStreamingSupported: false,
+        inputModalities: [Modality.Text],
+        outputModalities: [Modality.Text],
+        interface: ModelInterface.LangChain,
+        ragSupported: true,
+      });
+    }
+
 
     if (
       props.config.llms?.sagemaker.includes(

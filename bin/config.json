@@ -28,8 +28,7 @@
   },
   "llms": {
     "sagemaker": [
-      "FalconLite [ml.g5.12xlarge]",
-      "FalconLite2 [ml.g5.24xlarge]"
+      "Falcon_Lite_2 [ml.g5.48xlarge]"
     ],
     "huggingfaceApiSecretArn": "arn:aws:secretsmanager:us-east-1:471112755937:secret:BetaChatMadMaxHuggingFaceAPI-PoMmEZ",
     "sagemakerSchedule": {
